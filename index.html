@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>My First Web Map</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: whitesmoke;
+      font-family: "Noto Sans", sans-serif;
+      color: #3d3d3d;
+    }
+    h1 {
+      position: absolute;
+      margin-top: 0;
+      top: 10px;
+      left: 45px;
+      font-size: 2em;
+      font-family: "Lora", serif;
+      letter-spacing: .04em;
+      padding: 10px 15px;
+      background: rgba(256, 256, 256, 0.8);
+      border: 1px solid grey;
+      border-radius: 3px;
+      z-index: 800;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    section {
+      position: absolute;
+      bottom: 0;
+      left: 10px;
+      width: 280px;
+      margin: 20px auto;
+      padding: 0 15px;
+      background: rgba(256, 256, 256, 0.9);
+      border: 1px solid grey;
+      border-radius: 3px;
+      z-index: 800;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Food and Drink Tour of Downtown Cary, NC</h1>
+  <div id="map"></div>
+
+  <section>
+    <h2>About This Map</h2>
+    <p>This interactive web map shows a walking route through downtown Cary with stops at popular restaurants and bars. Hover over the markers to see each point of interest.</p>
+    <p>Base map tiles are provided by <a href="https://www.esri.com">Esri</a>. Map authored by <strong>Zachary Watkins</strong>.</p>
+  </section>
+
+  <!-- JS Libraries -->
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+  <!-- Route Data -->
+  <script src="data/route.js"></script>
+
+  <!-- Custom Script -->
+  <script>
+    var map = L.map('map').setView([35.7861, -78.7797], 16.5);
+
+    // Basemap
+    L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }
+).addTo(map);
+
+    // Add route (LineString)
+var myRoute = L.geoJson(data, {
+  filter: function (feature) {
+    return feature.geometry.type === "LineString";
+  },
+  style: function () {
+    return {
+      color: "#66bb6a",     // soft green
+      weight: 4,
+      opacity: 0.8,
+      dashArray: "5, 5"
+    };
+  },
+  onEachFeature: function (feature, layer) {
+    if (feature.properties && feature.properties.name) {
+      layer.bindPopup(`<strong>${feature.properties.name}</strong>`);
+    }
+  }
+}).addTo(map);
+
+    // Add points (markers)
+var myStops = L.geoJson(data, {
+  filter: function (feature) {
+    return feature.geometry.type === "Point";
+  },
+  pointToLayer: function (feature, latlng) {
+    return L.circleMarker(latlng, {
+      radius: 7,
+      fillColor: "#ffeb3b",   // bright yellow fill
+      color: "#bfae00",       // darker yellow border
+      weight: 3,
+      opacity: 1,
+      fillOpacity: 0.9
+    });
+  },
+  onEachFeature: function (feature, layer) {
+    layer.bindTooltip(feature.properties.name);
+
+    // Popup shows name, reading, and link (with HTML)
+    var popupContent = `
+      <strong>${feature.properties.name}</strong><br>
+      ${feature.properties.rating} Stars <br>
+      <a href="${feature.properties.link}" target="_blank">Link to the Restaurant</a>
+    `;
+    layer.bindPopup(popupContent);
+  }
+}).addTo(map); 
+
+  </script>
+
+</body>
+</html>
